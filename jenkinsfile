@@ -1,5 +1,4 @@
 pipeline {
-
     agent any
 
     stages {
@@ -12,35 +11,11 @@ pipeline {
             }
         }
 
-        stage('Verify Docker') {
-            steps {
-                sh '''
-                docker --version
-                docker compose version
-                '''
-            }
-        }
-
-        stage('Stop Existing Containers') {
+        stage('Deploy') {
             steps {
                 sh '''
                 docker compose down --remove-orphans || true
-                '''
-            }
-        }
-
-        stage('Build Application') {
-            steps {
-                sh '''
-                docker compose build --no-cache
-                '''
-            }
-        }
-
-        stage('Deploy Application') {
-            steps {
-                sh '''
-                docker compose up -d
+                docker compose up -d --build
                 '''
             }
         }
@@ -53,21 +28,5 @@ pipeline {
                 '''
             }
         }
-
-    }
-
-    post {
-
-        success {
-            echo 'Deployment Successful'
-        }
-
-        failure {
-            sh '''
-            docker ps -a
-            '''
-            echo 'Deployment Failed'
-        }
-
     }
 }
