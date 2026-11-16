@@ -11,8 +11,7 @@ pipeline {
         stage('Build & Test') {
             steps {
                 sh '''
-                    echo "Running tests or build validations..."
-                    # Add your test commands here if applicable
+                    echo "Running build validations..."
                 '''
             }
         }
@@ -20,12 +19,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    APP_DIR="/home/ubuntu/koya-clinic-booking"
-                    
-                    cd "$APP_DIR"
-                    
-                    git reset --hard
-                    git pull origin main
+                    # Jenkins workspace already contains your repository files
+                    echo "Deploying from current workspace: $(pwd)"
                     
                     docker compose down --remove-orphans || true
                     docker compose up -d --build
