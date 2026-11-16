@@ -1,9 +1,6 @@
 pipeline {
-    agent any
 
-    environment {
-        APP_DIR = "${WORKSPACE}"
-    }
+    agent any
 
     stages {
 
@@ -18,42 +15,32 @@ pipeline {
         stage('Verify Docker') {
             steps {
                 sh '''
-                    docker --version
-                    docker compose version
+                docker --version
+                docker compose version
                 '''
             }
         }
 
-        stage('Stop Existing Deployment') {
+        stage('Stop Existing Containers') {
             steps {
                 sh '''
-                    cd $APP_DIR
-
-                    docker compose down --remove-orphans || true
+                docker compose down --remove-orphans || true
                 '''
             }
         }
 
-        stage('Build Images') {
+        stage('Build Application') {
             steps {
                 sh '''
-                    cd $APP_DIR
-
-                    docker compose build --no-cache
+                docker compose build --no-cache
                 '''
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy Application') {
             steps {
                 sh '''
-                    cd $APP_DIR
-
-                    docker compose up -d
-
-                    sleep 15
-
-                    docker ps
+                docker compose up -d
                 '''
             }
         }
@@ -61,23 +48,26 @@ pipeline {
         stage('Health Check') {
             steps {
                 sh '''
-                    curl -f http://localhost:8000/docs
+                sleep 10
+                curl -f http://localhost:8000/docs
                 '''
             }
         }
+
     }
 
     post {
 
         success {
-            echo 'Application deployed successfully'
+            echo 'Deployment Successful'
         }
 
         failure {
             sh '''
-                docker ps -a
+            docker ps -a
             '''
-            echo 'Deployment failed'
+            echo 'Deployment Failed'
         }
+
     }
 }
