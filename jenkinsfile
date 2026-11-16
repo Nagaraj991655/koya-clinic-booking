@@ -1,0 +1,83 @@
+pipeline {
+    agent any
+
+    environment {
+        APP_DIR = "${WORKSPACE}"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    credentialsId: 'github-ssh',
+                    url: 'git@github.com:Nagaraj991655/koya-clinic-booking.git'
+            }
+        }
+
+        stage('Verify Docker') {
+            steps {
+                sh '''
+                    docker --version
+                    docker compose version
+                '''
+            }
+        }
+
+        stage('Stop Existing Deployment') {
+            steps {
+                sh '''
+                    cd $APP_DIR
+
+                    docker compose down --remove-orphans || true
+                '''
+            }
+        }
+
+        stage('Build Images') {
+            steps {
+                sh '''
+                    cd $APP_DIR
+
+                    docker compose build --no-cache
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    cd $APP_DIR
+
+                    docker compose up -d
+
+                    sleep 15
+
+                    docker ps
+                '''
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                sh '''
+                    curl -f http://localhost:8000/docs
+                '''
+            }
+        }
+    }
+
+    post {
+
+        success {
+            echo 'Application deployed successfully'
+        }
+
+        failure {
+            sh '''
+                docker ps -a
+            '''
+            echo 'Deployment failed'
+        }
+    }
+}
