@@ -2,27 +2,35 @@ pipeline {
     agent any
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build & Test') {
+            steps {
+                sh '''
+                    echo "Running tests or build validations..."
+                    # Add your test commands here if applicable
+                '''
+            }
+        }
 
         stage('Deploy') {
             steps {
-
                 sh '''
-                APP_DIR=/opt/koya-clinic-booking
-
-                if [ ! -d "$APP_DIR" ]; then
-                    git clone git@github.com:Nagaraj991655/koya-clinic-booking.git $APP_DIR
-                fi
-
-                cd $APP_DIR
-
-                git reset --hard
-                git pull origin main
-
-                docker compose down --remove-orphans || true
-
-                docker compose up -d --build
-
-                docker image prune -f
+                    APP_DIR="/home/ubuntu/koya-clinic-booking"
+                    
+                    cd "$APP_DIR"
+                    
+                    git reset --hard
+                    git pull origin main
+                    
+                    docker compose down --remove-orphans || true
+                    docker compose up -d --build
+                    
+                    docker image prune -f
                 '''
             }
         }
@@ -30,23 +38,20 @@ pipeline {
         stage('Health Check') {
             steps {
                 sh '''
-                sleep 15
-
-                curl -f http://localhost:8000/docs
+                    sleep 15
+                    curl -f http://localhost:8000/docs
                 '''
             }
         }
     }
 
     post {
-
         success {
-            echo 'Deployment Successful'
+            echo 'Deployment Successful!'
         }
-
         failure {
             sh '''
-            docker ps -a
+                docker ps -a
             '''
         }
     }
