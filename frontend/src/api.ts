@@ -1,3 +1,4 @@
+const API_BASE = "http://100.59.34.171:8000";
 export interface Slot {
   id: string;
   provider: string;
@@ -29,8 +30,7 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(path, {
-    ...options,
+  const res = await fetch(`${API_BASE}${path}`, {    ...options,
     headers: {
       "X-API-Key": API_KEY,
       "Content-Type": "application/json",
