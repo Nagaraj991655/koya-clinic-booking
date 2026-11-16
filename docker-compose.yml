@@ -7,8 +7,9 @@ services:
 
     container_name: koya-backend
 
-    env_file:
-      - .env
+    environment:
+      DATABASE_URL: sqlite:///./clinic.db
+      API_KEY: koya-clinic-secret-key
 
     ports:
       - "8000:8000"
