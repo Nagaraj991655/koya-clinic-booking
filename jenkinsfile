@@ -19,16 +19,22 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    # Jenkins workspace already contains your repository files
                     echo "Deploying from current workspace: $(pwd)"
                     
+                    # Stop and remove project containers
                     docker compose down --remove-orphans || true
+                    
+                    # Force stop/remove any stray legacy containers holding ports 8000 or 80
+                    docker stop koya-backend koya-frontend || true
+                    docker rm koya-backend koya-frontend || true
+                    
+                    # Start new containers
                     docker compose up -d --build
                     
                     docker image prune -f
                 '''
             }
-        }
+        }        
 
         stage('Health Check') {
             steps {
